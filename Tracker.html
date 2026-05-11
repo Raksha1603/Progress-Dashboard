@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raksha — Unified Premium Study, Health & Job Application Dashboard</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+  .app{max-width:1200px;margin:0 auto;padding:24px 16px}
+  h1{font-size:20px;font-weight:600;margin-bottom:4px}
+  h1 span {color: #e50914;}
+  .subtitle{font-size:13px;color:#666;margin-bottom:24px}
+
+  /* Grid Layout (Forces Sidebar Layout on Desktop) */
+  .main-layout{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:900px){
+    .main-layout{grid-template-columns:1.6fr 1.1fr;align-items:start}
+  }
+
+  /* Metrics */
+  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:24px}
+  .metric{background:#fff;border:1px solid #e8e8e4;border-radius:10px;padding:14px 16px}
+  .metric-label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.4px}
+  .metric-val{font-size:26px;font-weight:600;color:#1a1a1a}
+  .metric-sub{font-size:11px;color:#aaa;margin-top:3px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .tab{padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#666;transition:all 0.15s}
+  .tab:hover{background:#f0f0eb}
+  .tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+  /* Sections */
+  .sec{display:none}.sec.active{display:block}
+
+  /* Card Structures */
+  .card-panel{background:#fff;border:1px solid #e8e8e4;border-radius:12px;padding:20px;margin-bottom:20px}
+  .card-title{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+
+  /* Creator Panel */
+  .creator-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+  .creator-grid input, .creator-grid select{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none}
+  .creator-btn{width:100%;padding:10px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.2s}
+  .creator-btn:hover{background:#333}
+
+  /* Daily Timeline View */
+  .calendar-controls {display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;background:#f8f9fa;padding:0.75rem;border-radius:8px}
+  .calendar-controls button {background:#1a1a1a;color:white;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:bold;font-size:12px;transition:0.2s}
+  .calendar-controls button:hover {background:#e50914}
+  #current-date-display {font-weight:bold;font-size:13px}
+  
+  .trow{display:flex;gap:12px;margin-bottom:16px;align-items:flex-start;position:relative}
+  .trow:last-child{margin-bottom:0}
+  .ttime{font-size:12px;color:#888;min-width:110px;padding-top:8px;line-height:1.4}
+  .tblock{flex:1;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .tcontent{flex:1}
+  .tsub{font-size:11px;font-weight:400;margin-top:4px;opacity:0.75;line-height:1.5}
+  
+  .tcheck{display:flex;align-items:center;gap:8px}
+  .tcheck input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#1D9E75}
+  .tcheck label{cursor:pointer}
+
+  /* Action Buttons for Tasks */
+  .t-actions{display:flex;align-items:center;gap:8px}
+  .sync-mini-btn{padding:4px 8px;background:#4285f4;color:#fff;border:none;border-radius:4px;font-size:10.5px;font-weight:600;cursor:pointer;transition:background 0.2s}
+  .sync-mini-btn:hover{background:#2a6dd4}
+  .t-delete{color:#ccc;cursor:pointer;font-size:18px;line-height:1;transition:color 0.2s}
+  .t-delete:hover{color:#e24b4a}
+
+  /* Block colours */
+  .block-sleep{background:#f4f3ef;color:#444}
+  .block-scaler{background:#e1f5ee;color:#085041}
+  .block-work{background:#e6f1fb;color:#0c447c}
+  .block-dsa{background:#faeeda;color:#633806}
+  .block-exercise{background:#fdf2f8;color:#9d174d;border-left:3px solid #db2777}
+  .block-project{background:#eeedfe;color:#3c3489}
+  .block-break{background:#fafaf8;color:#888;border:1px solid #eee}
+
+  /* Alerts and Legend */
+  .alert{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#1e3a8a;line-height:1.6}
+  .alert b{font-weight:600}
+  .gcal-box{background:#f0f7ff;border:1px solid #b8daff;border-radius:12px;padding:18px;margin-bottom:20px;display:flex;flex-direction:column;gap:12px}
+  .gcal-title{font-size:15px;font-weight:600;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+  .gcal-btn{padding:8px 16px;background:#4285f4;color:#fff;border:none;border-radius:6px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background 0.2s}
+  .gcal-btn:hover{background:#357ae8}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+  .leg{display:flex;align-items:center;gap:6px;font-size:12px;color:#666}
+  .leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+
+  /* Google Calendar List */
+  .refresh-btn{background:none;border:none;color:#4285f4;cursor:pointer;font-size:12px;font-weight:600}
+  .refresh-btn:hover{text-decoration:underline}
+  .event-list-container{display:flex;flex-direction:column;gap:10px;max-height:450px;overflow-y:auto;padding-right:4px}
+  .g-event-item{border:1px solid #f0f0eb;border-radius:8px;padding:10px;background:#fbfbfa;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+  .g-event-header{display:flex;justify-content:space-between;font-weight:600;color:#1a1a1a}
+  .g-event-time{font-size:11px;color:#888}
+  .g-event-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+  .g-evt-btn{padding:3px 8px;font-size:10px;font-weight:600;border-radius:4px;cursor:pointer;border:1px solid #ddd;background:#fff;transition:all 0.15s}
+  .g-evt-btn.del{color:#e24b4a;border-color:#fca5a5}
+  .g-evt-btn.del:hover{background:#fef2f2}
+
+  /* Weekly log */
+  .log-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0eb}
+  .log-row:last-child{border-bottom:none}
+  .log-day{font-size:13px;font-weight:500}
+  .log-pills{display:flex;gap:6px;flex-wrap:wrap}
+  .lpill{padding:5px 11px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid #e0e0da;background:#f5f5f0;color:#888;transition:all 0.15s;user-select:none}
+  .lpill:hover{background:#eee}
+  .lpill.done{background:#e1f5ee;color:#085041;border-color:#9fe1cb}
+  .lpill.skip{background:#fcebeb;color:#791f1f;border-color:#f7c1c1}
+  .prog-wrap{background:#eee;border-radius:99px;height:6px;margin-top:12px}
+  .prog-bar{height:6px;border-radius:99px;background:#1D9E75;transition:width 0.4s}
+
+  /* Streak */
+  .streak-label{font-size:14px;font-weight:600;margin-bottom:10px}
+  .streak-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:24px}
+  .s-dot{width:22px;height:22px;border-radius:5px;background:#eee;border:1px solid #ddd;cursor:pointer;transition:background 0.15s}
+  .s-dot.done{background:#1D9E75;border-color:#0f6e56}
+  .s-dot.skip{background:#e24b4a;border-color:#a32d2d}
+  .s-dot.today{border:2px solid #185fa5}
+
+  /* Vision Board */
+  .vision-grid {display:grid;grid-template-columns:repeat(auto-fill, minmax(110px, 1fr));gap:8px;margin-bottom:12px;min-height:80px}
+  .vision-item {background:#fff5f5;border:1px dashed #ffc9c9;border-radius:8px;padding:10px;text-align:center;font-size:12px;position:relative;display:flex;align-items:center;justify-content:center;font-weight:500}
+  .vision-item .del-vision {position:absolute;top:2px;right:4px;background:none;border:none;color:#aaa;cursor:pointer;font-size:11px}
+  .vision-item .del-vision:hover {color:#e24b4a}
+
+  /* Saved Links */
+  .links-list {list-style:none;display:flex;flex-direction:column;gap:6px;margin-bottom:12px;max-height:180px;overflow-y:auto}
+  .link-item {display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fafafa;border-radius:6px;border:1px solid #e8e8e4}
+  .link-item a {color:#1d4ed8;text-decoration:none;font-size:12.5px;font-weight:500;word-break:break-all}
+  .link-item a:hover {text-decoration:underline}
+  .del-link-btn {background:none;border:none;color:#ccc;cursor:pointer;font-size:16px;padding:0 4px}
+  .del-link-btn:hover {color:#e24b4a}
+
+  /* Notes Grid */
+  .note-row{display:flex;gap:8px;margin-bottom:12px}
+  .note-row input{flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none}
+  .note-item{padding:8px 0;border-bottom:1px solid #f0f0eb;font-size:13px;color:#444;display:flex;gap:8px}
+  .note-del{margin-left:auto;cursor:pointer;color:#ccc;font-size:16px}
+  .note-del:hover{color:#e24b4a}
+
+  /* Job Tracker Styles */
+  .app-table {width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+  .app-table th, .app-table td {border:1px solid #e8e8e4;padding:8px 10px;text-align:left}
+  .app-table th {background:#f5f5f0;font-weight:600}
+  .status-badge {padding:3px 6px;border-radius:4px;font-size:11px;font-weight:600;display:inline-block}
+  .status-applied {background:#e0f2fe;color:#0369a1}
+  .status-interviewing {background:#fef3c7;color:#d97706}
+  .status-offered {background:#dcfce7;color:#15803d}
+  .status-rejected {background:#fee2e2;color:#b91c1c}
+  
+  .graph-container {margin-top:15px;background:#fafafa;padding:10px;border-radius:8px;border:1px solid #e8e8e4}
+
+  .input-panel-group {display:flex;flex-direction:column;gap:8px}
+  .input-panel-group input, .input-panel-group select {width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none}
+
+  /* Modal */
+  .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;z-index:999}
+  .modal-content{background:#fff;padding:20px;border-radius:12px;max-width:400px;width:90%;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+  .modal-title{font-size:15px;font-weight:600;margin-bottom:12px}
+  .modal-field{margin-bottom:12px}
+  .modal-field label{display:block;font-size:11px;color:#666;margin-bottom:4px;text-transform:uppercase}
+  .modal-field input{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:13px;outline:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <h1>Raksha — Unified Premium Study, Health & Job Board</h1>
+  <p class="subtitle">Target: ₹28 LPA SDE-2 &nbsp;|&nbsp; Same-Day Event Focus & Dynamic Progress Graphs</p>
+
+  <div class="gcal-box">
+    <div class="gcal-title">📅 <span>Google Calendar Sync Engine</span></div>
+    <div style="font-size: 12px; color: #555;">
+      Authorize your Google Account here to display and sync events dynamically.
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="gcal-btn" id="auth-btn" onclick="handleAuthClick()" style="display:none;">Sign in with Google</button>
+      <button class="gcal-btn" id="signout-btn" onclick="handleSignoutClick()" style="display:none; background:#888;">Sign Out</button>
+    </div>
+    <div id="gcal-status" style="font-size:11.5px; color:#555; font-weight:500;">Status: System initializing...</div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Today's study</div>
+      <div class="metric-val" id="today-hrs">0h</div>
+      <div class="metric-sub">Target: 5.5h/day</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Applications (Total)</div>
+      <div class="metric-val" id="job-count">0</div>
+      <div class="metric-sub">Applications Done</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">LeetCode (week)</div>
+      <div class="metric-val" id="lc-count">0</div>
+      <div class="metric-sub">Target: 10</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Week done</div>
+      <div class="metric-val" id="week-pct">0%</div>
+      <div class="metric-sub">of goals</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('calendar-view-tab',this)">Daily Schedule</button>
+    <button class="tab" onclick="showTab('job-tracker-tab',this)">Jobs & Progress Graph</button>
+    <button class="tab" onclick="showTab('log',this)">Weekly log</button>
+    <button class="tab" onclick="showTab('streak',this)">Streak</button>
+    <button class="tab" onclick="showTab('notes-tab',this)">Notes Scratchpad</button>
+  </div>
+
+  <div class="main-layout">
+    
+    <div style="display: flex; flex-direction: column; width: 100%;">
+      
+      <div id="calendar-view-tab" class="sec active">
+        <div class="alert">
+          <b>Class & Office Overlap Strategy:</b> Office at 6:30 AM, Scaler class from 7:00 – 9:30 AM, and resume work tasks at 9:30 AM.
+        </div>
+
+        <div class="card-panel">
+          <div style="font-size:14px; font-weight:600; margin-bottom:12px;">➕ Add Custom Task to Today's List</div>
+          <div class="creator-grid">
+            <input type="text" id="task-name" placeholder="Task Name (e.g., Learn Redis Cache)">
+            <input type="text" id="task-time" placeholder="Time Slot (e.g., 14:00 - 15:30)">
+            <select id="task-cat">
+              <option value="dsa">DSA / LeetCode (Gold)</option>
+              <option value="scaler">Scaler class (Green)</option>
+              <option value="work">Work (Blue)</option>
+              <option value="exercise">Exercise (Pink)</option>
+              <option value="project">Revision / Homework (Purple)</option>
+              <option value="sleep">Sleep / Breaks (Grey)</option>
+            </select>
+            <input type="number" id="task-mins" placeholder="Study Mins (e.g., 90)" min="0">
+          </div>
+          <button class="creator-btn" onclick="addCustomTask()">Add Task to Timeline</button>
+        </div>
+
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" style="background:#d3d1c7"></div>Sleep / break</div>
+          <div class="leg"><div class="leg-dot" style="background:#9fe1cb"></div>Scaler class</div>
+          <div class="leg"><div class="leg-dot" style="background:#b5d4f4"></div>Work</div>
+          <div class="leg"><div class="leg-dot" style="background:#fac775"></div>DSA / LeetCode</div>
+          <div class="leg"><div class="leg-dot" style="background:#fbcfe8"></div>Exercise / Workout</div>
+          <div class="leg"><div class="leg-dot" style="background:#cecbf6"></div>Revision / HW</div>
+        </div>
+
+        <div class="card-panel">
+          <div class="calendar-controls">
+              <button onclick="changeDay(-1)">◀ Previous Day</button>
+              <div id="current-date-display">Today</div>
+              <button onclick="changeDay(1)">Next Day ▶</button>
+          </div>
+          <div id="dynamic-timeline-list"></div>
+        </div>
+      </div>
+
+      <div id="job-tracker-tab" class="sec">
+        <div class="card-panel">
+          <div style="font-size:15px; font-weight:600; margin-bottom:12px;">📈 Job Applications Tracker</div>
+          <div class="creator-grid" style="grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));">
+            <input type="text" id="job-company" placeholder="Company Name">
+            <input type="text" id="job-role" placeholder="Role SDE/SDE-2">
+            <input type="date" id="job-date">
+            <select id="job-status">
+              <option value="Applied">Applied</option>
+              <option value="Interviewing">Interviewing</option>
+              <option value="Offered">Offered</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <button class="creator-btn" onclick="addJobApplication()">Save Application</button>
+
+          <table class="app-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Role</th>
+                <th>Date Applied</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="job-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="card-panel">
+          <div style="font-size:15px; font-weight:600; margin-bottom:10px;">📊 Weekly Application Progress</div>
+          <div class="graph-container">
+            <canvas id="progress-canvas" width="600" height="200" style="width: 100%; height: auto;"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="log" class="sec">
+        <div class="card-panel">
+          <div style="font-size:15px; font-weight:600; margin-bottom:14px;">Weekly Task Milestone Grid</div>
+          <div class="log-row"><div class="log-day">Monday</div><div class="log-pills"><span class="lpill" id="log-0-lc" onclick="toggleLog(0,'lc')">DSA Core</span><span class="lpill" id="log-0-sc" onclick="toggleLog(0,'sc')">Live Class</span><span class="lpill" id="log-0-hw" onclick="toggleLog(0,'hw')">HW/LLD</span></div></div>
+          <div class="log-row"><div class="log-day">Tuesday</div><div class="log-pills"><span class="lpill" id="log-1-lc" onclick="toggleLog(1,'lc')">DSA Core</span><span class="lpill" id="log-1-sc" onclick="toggleLog(1,'sc')">Live Class</span><span class="lpill" id="log-1-hw" onclick="toggleLog(1,'hw')">HW/LLD</span></div></div>
+          <div class="log-row"><div class="log-day">Wednesday</div><div class="log-pills"><span class="lpill" id="log-2-lc" onclick="toggleLog(2,'lc')">DSA Core</span><span class="lpill" id="log-2-sc" onclick="toggleLog(2,'sc')">Live Class</span><span class="lpill" id="log-2-hw" onclick="toggleLog(2,'hw')">HW/LLD</span></div></div>
+          <div class="log-row"><div class="log-day">Thursday</div><div class="log-pills"><span class="lpill" id="log-3-lc" onclick="toggleLog(3,'lc')">DSA Core</span><span class="lpill" id="log-3-sc" onclick="toggleLog(3,'sc')">Live Class</span><span class="lpill" id="log-3-hw" onclick="toggleLog(3,'hw')">HW/LLD</span></div></div>
+          <div class="log-row"><div class="log-day">Friday</div><div class="log-pills"><span class="lpill" id="log-4-lc" onclick="toggleLog(4,'lc')">DSA Core</span><span class="lpill" id="log-4-sc" onclick="toggleLog(4,'sc')">Live Class</span><span class="lpill" id="log-4-hw" onclick="toggleLog(4,'hw')">HW/LLD</span></div></div>
+          <div class="log-row"><div class="log-day">Saturday</div><div class="log-pills"><span class="lpill" id="log-5-lc" onclick="toggleLog(5,'lc')">3x DSA</span><span class="lpill" id="log-5-sc" onclick="toggleLog(5,'sc')">Portfolio</span><span class="lpill" id="log-5-hw" onclick="toggleLog(5,'hw')">Capstone</span></div></div>
+          <div class="log-row"><div class="log-day">Sunday</div><div class="log-pills"><span class="lpill" id="log-6-lc" onclick="toggleLog(6,'lc')">2x DSA</span><span class="lpill" id="log-6-sc" onclick="toggleLog(6,'sc')">Mock Prep</span><span class="lpill" id="log-6-hw" onclick="toggleLog(6,'hw')">HLD Drill</span></div></div>
+          <div class="prog-wrap"><div class="prog-bar" id="week-bar" style="width:0%"></div></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="creator-btn" style="width:auto; padding:8px 16px;" onclick="resetWeek()">Reset Week Data</button>
+        </div>
+      </div>
+
+      <div id="streak" class="sec">
+        <div class="card-panel">
+          <div class="streak-label">30-day consistency streak tracker</div>
+          <div class="streak-row" id="streak-row"></div>
+        </div>
+      </div>
+
+      <div id="notes-tab" class="sec">
+        <div class="card-panel">
+          <div style="font-size:15px;font-weight:600;margin-bottom:12px">Lecture Takeaways & Task Scratchpad</div>
+          <div class="note-row">
+            <input type="text" id="note-input" placeholder="e.g., Designed a cache system via Redis today" onkeydown="if(event.key==='Enter')addNote()">
+            <button class="creator-btn" style="width:auto;" onclick="addNote()">Add</button>
+          </div>
+          <div id="notes-list"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:20px; width:100%">
+      
+      <div class="card-panel">
+        <div class="card-title">
+          <span>📅 Live Calendar View (Today Only)</span>
+          <button class="refresh-btn" id="refresh-cal-btn" onclick="fetchUpcomingEvents()" style="display:none;">🔄 Refresh</button>
+        </div>
+        <div class="event-list-container" id="gcal-events-list">
+          <div style="font-size:12px; color:#aaa; text-align:center; padding:20px 0;">
+            Authenticate your account to view your live Google Calendar.
+          </div>
+        </div>
+      </div>
+
+      <div class="card-panel">
+        <div class="card-title">🎯 Vision Board</div>
+        <div class="vision-grid" id="vision-container"></div>
+        <div class="input-panel-group">
+          <input type="text" id="vision-input" placeholder="Enter target (e.g. Master LLD Patterns)">
+          <button class="creator-btn" onclick="addVision()">Add Milestone</button>
+        </div>
+      </div>
+
+      <div class="card-panel">
+        <div class="card-title">🔗 Important Links</div>
+        <ul class="links-list" id="links-container"></ul>
+        <div class="input-panel-group">
+          <input type="text" id="link-title" placeholder="Title (e.g. Scaler LMS)" style="margin-bottom:2px;">
+          <input type="text" id="link-url" placeholder="URL (https://...)">
+          <button class="creator-btn" onclick="addLink()">Save Link</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div class="modal" id="edit-modal">
+  <div class="modal-content">
+    <div class="modal-title">✏️ Edit Calendar Event</div>
+    <input type="hidden" id="edit-event-id">
+    <div class="modal-field">
+      <label>Event Title</label>
+      <input type="text" id="edit-event-title">
+    </div>
+    <div class="modal-field">
+      <label>Start Date/Time (YYYY-MM-DDTHH:MM:SS)</label>
+      <input type="text" id="edit-event-start">
+    </div>
+    <div class="modal-field">
+      <label>End Date/Time (YYYY-MM-DDTHH:MM:SS)</label>
+      <input type="text" id="edit-event-end">
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+      <button class="g-evt-btn" onclick="closeEditModal()">Cancel</button>
+      <button class="creator-btn" style="width:auto; padding:6px 14px;" onclick="saveEventChanges()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client"></script>
+
+<script>
+  const CLIENT_ID = '432931492684-p4vbo6ohdhfdl330ogbq51gfl29ee6km.apps.googleusercontent.com';
+  const API_KEY = 'AIzaSyClWY0FWG6zm2Bh-QuuCUK98R6tN7IU17E';  
+  const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
+  const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+
+  let tokenClient;
+  let gapiLoadedFlag = false;
+  let access_token = null;
+
+  // Active working date
+  let currentDate = new Date();
+
+  const defaultRoutine = [
+    { date: "2026-05-11", time: '4:30 – 6:00 AM', name: 'DSA Core Practice', cat: 'dsa', desc: 'Solve 1 to 2 Medium-level LeetCode problems in C#.', mins: 90 },
+    { date: "2026-05-11", time: '6:30 – 7:00 AM', name: 'Office Work Starts', cat: 'work', desc: 'Clear urgent workspace backlogs.', mins: 0 },
+    { date: "2026-05-11", time: '7:00 – 9:30 AM', name: 'Scaler Live Class', cat: 'scaler', desc: 'System architecture, OOP Design patterns.', mins: 150 },
+    { date: "2026-05-11", time: '17:00 – 18:30', name: 'Gym Workout', cat: 'exercise', desc: 'Physical fitness reboot block.', mins: 0 },
+    { date: "2026-05-11", time: '19:00 – 21:00', name: 'Scaler Homework & LLD', cat: 'project', desc: 'Structure mock schema designs.', mins: 120 }
+  ];
+
+  let routineList = JSON.parse(localStorage.getItem('routineList')) || defaultRoutine;
+
+  let visionGoals = JSON.parse(localStorage.getItem('visionGoals')) || [
+    "🚀 SDE-2 Target Match",
+    "💻 500+ LeetCode Milestone",
+    "🧠 Master Agentic System Architectures"
+  ];
+
+  let savedLinks = JSON.parse(localStorage.getItem('savedLinks')) || [
+    { title: "Scaler Official Portal", url: "https://www.scaler.com" }
+  ];
+
+  let notes = JSON.parse(localStorage.getItem('notes') || '[]');
+  let logState = JSON.parse(localStorage.getItem('logState') || '{}');
+  let streakData = JSON.parse(localStorage.getItem('streakData') || '[]');
+  let jobApplications = JSON.parse(localStorage.getItem('jobApplications')) || [
+    { company: 'Google', role: 'SDE-2 Backend', date: '2026-05-11', status: 'Applied' },
+    { company: 'Microsoft', role: 'SDE Cloud', date: '2026-05-10', status: 'Interviewing' }
+  ];
+
+  if (streakData.length === 0) {
+    for (var i = 0; i < 30; i++) streakData.push('nd');
+  }
+
+  // Safely loads modern GAPI environment asynchronously
+  function loadGapiAsync() {
+    const script = document.createElement('script');
+    script.src = "https://apis.google.com/js/api.js";
+    script.onload = () => {
+      gapi.load('client', async () => {
+        try {
+          await gapi.client.init({ apiKey: API_KEY, discoveryDocs: [DISCOVERY_DOC] });
+          gapiLoadedFlag = true;
+          enableAuthUI();
+        } catch (err) {
+          document.getElementById('gcal-status').innerHTML = "❌ GAPI Init Error: Make sure your API Key is correct.";
+        }
+      });
+    };
+    document.body.appendChild(script);
+  }
+
+  window.onload = function() {
+    try {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID, 
+        scope: SCOPES, 
+        callback: (resp) => {
+          if (resp.error !== undefined) { 
+            document.getElementById('gcal-status').innerHTML = "❌ Auth Error: " + resp.error;
+            throw (resp); 
+          }
+          access_token = resp.access_token;
+          gapi.client.setToken({ access_token: access_token });
+          
+          document.getElementById('auth-btn').style.display = 'none';
+          document.getElementById('signout-btn').style.display = 'inline-block';
+          document.getElementById('refresh-cal-btn').style.display = 'inline-block';
+          document.getElementById('gcal-status').innerHTML = "Status: <b>Authenticated!</b> Ready to Sync.";
+          renderTimeline(); 
+          fetchUpcomingEvents(); 
+        }, 
+      });
+      loadGapiAsync();
+    } catch(e) {
+      document.getElementById('gcal-status').innerHTML = "❌ Client Initialization Failed.";
+    }
+
+    // Default target date for input on start
+    document.getElementById('job-date').valueAsDate = new Date();
+
+    renderTimeline();
+    restoreLog();
+    renderStreak();
+    renderNotes();
+    renderVision();
+    renderLinks();
+    renderJobApplications();
+  };
+
+  function enableAuthUI() {
+    document.getElementById('auth-btn').style.display = 'inline-block';
+    document.getElementById('gcal-status').innerText = "Status: System initialized. Please sign in.";
+  }
+
+  function handleSignoutClick() {
+    if (access_token) {
+      google.accounts.oauth2.revoke(access_token);
+      gapi.client.setToken(null);
+      access_token = null;
+      document.getElementById('auth-btn').style.display = 'inline-block';
+      document.getElementById('signout-btn').style.display = 'none';
+      document.getElementById('refresh-cal-btn').style.display = 'none';
+      document.getElementById('gcal-status').innerText = "Status: Signed Out";
+      document.getElementById('gcal-events-list').innerHTML = `
+        <div style="font-size:12px; color:#aaa; text-align:center; padding:20px 0;">
+          Authenticate your account to view your live Google Calendar.
+        </div>`;
+      renderTimeline(); 
+    }
+  }
+
+  function handleAuthClick() {
+    if (tokenClient) {
+      tokenClient.requestAccessToken({prompt: 'consent'});
+    } else {
+      alert("Google scripts are still loading. Please wait a moment.");
+    }
+  }
+
+  // --- CALENDAR VIEW (DETERMINISTIC SAME-DAY RESOLUTION ONLY) ---
+  function renderTimeline() {
+    const listEl = document.getElementById('dynamic-timeline-list');
+    listEl.innerHTML = '';
+
+    const formattedDisplayStr = currentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('current-date-display').innerText = formattedDisplayStr;
+
+    // ISO format YYYY-MM-DD
+    const selectedDateISO = currentDate.toISOString().split('T')[0];
+
+    // Filter events to only match the selected active calendar day
+    const sameDayEvents = routineList.filter(task => {
+      if (!task.date) return false;
+      return task.date === selectedDateISO;
+    });
+
+    if (sameDayEvents.length === 0) {
+      listEl.innerHTML = `<div style="font-size:12.5px; color:#888; text-align:center; padding:24px 0;">No scheduled tasks saved for this date yet. Create one above!</div>`;
+      return;
+    }
+
+    sameDayEvents.forEach((task) => {
+      // Find actual index of the event in root array
+      const rootIdx = routineList.findIndex(t => t.id === task.id || (t.time === task.time && t.name === task.name));
+
+      const row = document.createElement('div');
+      row.className = 'trow';
+
+      const timeEl = document.createElement('div');
+      timeEl.className = 'ttime';
+      timeEl.textContent = task.time;
+
+      const block = document.createElement('div');
+      block.className = `tblock block-${task.cat}`;
+
+      const content = document.createElement('div');
+      content.className = 'tcontent';
+
+      const checkWrap = document.createElement('div');
+      checkWrap.className = 'tcheck';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.id = `task-cb-${rootIdx}`;
+      checkbox.onchange = () => blockDone(`task-cb-${rootIdx}`, task.mins);
+
+      const label = document.createElement('label');
+      label.htmlFor = `task-cb-${rootIdx}`;
+      label.textContent = `${task.name} ${task.mins > 0 ? `(${task.mins/60}h)` : ''}`;
+
+      checkWrap.appendChild(checkbox);
+      checkWrap.appendChild(label);
+      content.appendChild(checkWrap);
+
+      if (task.desc) {
+        const sub = document.createElement('div');
+        sub.className = 'tsub';
+        sub.textContent = task.desc;
+        content.appendChild(sub);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 't-actions';
+
+      if (access_token) {
+        const syncBtn = document.createElement('button');
+        syncBtn.className = 'sync-mini-btn';
+        syncBtn.textContent = '📅 Sync';
+        syncBtn.onclick = () => syncSingleTask(rootIdx);
+        actions.appendChild(syncBtn);
+      }
+
+      const delBtn = document.createElement('span');
+      delBtn.className = 't-delete';
+      delBtn.innerHTML = '&times;';
+      delBtn.onclick = () => removeCustomTask(rootIdx);
+      actions.appendChild(delBtn);
+
+      block.appendChild(content);
+      block.appendChild(actions);
+      row.appendChild(timeEl);
+      row.appendChild(block);
+
+      listEl.appendChild(row);
+    });
+  }
+
+  function changeDay(offset) {
+    currentDate.setDate(currentDate.getDate() + offset);
+    renderTimeline();
+    fetchUpcomingEvents(); 
+  }
+
+  function addCustomTask() {
+    const name = document.getElementById('task-name').value.trim();
+    const time = document.getElementById('task-time').value.trim();
+    const cat = document.getElementById('task-cat').value;
+    const mins = parseInt(document.getElementById('task-mins').value) || 0;
+    const dateStr = currentDate.toISOString().split('T')[0];
+
+    if (!name || !time) {
+      alert("Please fill in both the Task Name and Time Slot!");
+      return;
+    }
+
+    const newTask = {
+      id: 't-custom-' + Date.now(),
+      date: dateStr,
+      time: time,
+      name: name,
+      cat: cat,
+      desc: 'Custom scheduled study routine block.',
+      mins: mins
+    };
+
+    routineList.push(newTask);
+    localStorage.setItem('routineList', JSON.stringify(routineList));
+    
+    document.getElementById('task-name').value = '';
+    document.getElementById('task-time').value = '';
+    document.getElementById('task-mins').value = '';
+
+    renderTimeline();
+  }
+
+  function removeCustomTask(index) {
+    if (confirm(`Remove "${routineList[index].name}" from your daily schedule?`)) {
+      routineList.splice(index, 1);
+      localStorage.setItem('routineList', JSON.stringify(routineList));
+      renderTimeline();
+    }
+  }
+
+  // Fetch GCal Events for Selected Day Only
+  async function fetchUpcomingEvents() {
+    if (!gapiLoadedFlag || !access_token) return;
+
+    const listContainer = document.getElementById('gcal-events-list');
+    listContainer.innerHTML = '<div style="font-size:12px; color:#888; text-align:center; padding:20px 0;">⚙️ Loading Google Calendar...</div>';
+
+    const startOfDay = new Date(currentDate);
+    startOfDay.setHours(0,0,0,0);
+    const endOfDay = new Date(currentDate);
+    endOfDay.setHours(23,59,59,999);
+
+    try {
+      const response = await gapi.client.calendar.events.list({
+        'calendarId': 'primary',
+        'timeMin': startOfDay.toISOString(),
+        'timeMax': endOfDay.toISOString(),
+        'showDeleted': false,
+        'singleEvents': true,
+        'orderBy': 'startTime'
+      });
+
+      const events = response.result.items;
+      listContainer.innerHTML = '';
+
+      if (!events || events.length === 0) {
+        listContainer.innerHTML = '<div style="font-size:12px; color:#aaa; text-align:center; padding:20px 0;">No external Google Calendar events for this day.</div>';
+        return;
+      }
+
+      events.forEach(event => {
+        const start = event.start.dateTime || event.start.date;
+        const end = event.end.dateTime || event.end.date;
+        
+        const formattedStart = new Date(start).toLocaleString('en-IN', {
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        const card = document.createElement('div');
+        card.className = 'g-event-item';
+        card.innerHTML = `
+          <div class="g-event-header">
+            <span>${event.summary}</span>
+          </div>
+          <div class="g-event-time">⏱️ ${formattedStart}</div>
+          <div class="g-event-footer">
+            <button class="g-evt-btn edit" onclick="openEditModal('${event.id}', '${event.summary}', '${start}', '${end}')">✏️ Edit</button>
+            <button class="g-evt-btn del" onclick="deleteGCalEvent('${event.id}')">❌ Delete</button>
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+
+    } catch (err) {
+      listContainer.innerHTML = `<div style="font-size:12px; color:#e24b4a; text-align:center; padding:20px 0;">Error fetching events: ${err.result?.error?.message || err.message}</div>`;
+    }
+  }
+
+  // --- JOB APPLICATIONS TRACKER & GRAPH ---
+  function renderJobApplications() {
+    const tbody = document.getElementById('job-table-body');
+    tbody.innerHTML = '';
+
+    jobApplications.forEach((app, idx) => {
+      const row = document.createElement('tr');
+      let statusClass = 'status-applied';
+      if(app.status === 'Interviewing') statusClass = 'status-interviewing';
+      if(app.status === 'Offered') statusClass = 'status-offered';
+      if(app.status === 'Rejected') statusClass = 'status-rejected';
+
+      row.innerHTML = `
+        <td style="font-weight:600">${app.company}</td>
+        <td>${app.role}</td>
+        <td>${app.date}</td>
+        <td><span class="status-badge ${statusClass}">${app.status}</span></td>
+        <td><button class="g-evt-btn del" style="padding:2px 6px;" onclick="deleteJobApplication(${idx})">Delete</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    document.getElementById('job-count').textContent = jobApplications.length;
+    localStorage.setItem('jobApplications', JSON.stringify(jobApplications));
+    drawProgressGraph();
+  }
+
+  function addJobApplication() {
+    const company = document.getElementById('job-company').value.trim();
+    const role = document.getElementById('job-role').value.trim();
+    const date = document.getElementById('job-date').value;
+    const status = document.getElementById('job-status').value;
+
+    if (!company || !role || !date) {
+      alert("Please specify the Company, Role, and Date applied!");
+      return;
+    }
+
+    jobApplications.push({ company, role, date, status });
+    
+    // Clear inputs
+    document.getElementById('job-company').value = '';
+    document.getElementById('job-role').value = '';
+    
+    renderJobApplications();
+  }
+
+  function deleteJobApplication(idx) {
+    if (confirm("Remove this job application record?")) {
+      jobApplications.splice(idx, 1);
+      renderJobApplications();
+    }
+  }
+
+  function getApplicationsPerDay() {
+    // Get past 7 days starting from today (2026-05-11)
+    const counts = {};
+    const days = [];
+    
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(2026, 4, 11); // May 11, 2026
+      d.setDate(d.getDate() - i);
+      const iso = d.toISOString().split('T')[0];
+      days.push({
+        iso: iso,
+        label: d.toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' })
+      });
+      counts[iso] = 0;
+    }
+
+    jobApplications.forEach(app => {
+      if (counts[app.date] !== undefined) {
+        counts[app.date]++;
+      }
+    });
+
+    return days.map(day => ({
+      label: day.label,
+      count: counts[day.iso]
+    }));
+  }
+
+  // Dynamic HTML5 Canvas Bar Chart
+  function drawProgressGraph() {
+    const canvas = document.getElementById('progress-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const data = getApplicationsPerDay();
+    const padding = 40;
+    const chartHeight = canvas.height - padding * 2;
+    const chartWidth = canvas.width - padding * 2;
+    const barWidth = 40;
+    const gap = (chartWidth - barWidth * data.length) / (data.length - 1);
+
+    // Compute Y max scale bound
+    const maxCount = Math.max(...data.map(d => d.count), 4);
+
+    // Draw reference background grid lines
+    ctx.strokeStyle = '#e8e8e4';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padding + (chartHeight / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(canvas.width - padding, y);
+      ctx.stroke();
+
+      // Grid labels
+      ctx.fillStyle = '#888';
+      ctx.font = '10px sans-serif';
+      const labelVal = Math.round(maxCount - (maxCount / 4) * i);
+      ctx.fillText(labelVal, padding - 20, y + 3);
+    }
+
+    // Render bars
+    data.forEach((d, i) => {
+      const x = padding + i * (barWidth + gap);
+      const valRatio = d.count / maxCount;
+      const barHeight = chartHeight * valRatio;
+      const y = padding + chartHeight - barHeight;
+
+      // Draw active bar
+      ctx.fillStyle = d.count > 0 ? '#e50914' : '#d3d1c7';
+      ctx.beginPath();
+      ctx.roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
+      ctx.fill();
+
+      // Number count overhead
+      ctx.fillStyle = '#1a1a1a';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(d.count, x + barWidth / 2, y - 6);
+
+      // Date labels along base
+      ctx.fillStyle = '#666';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(d.label, x + barWidth / 2, canvas.height - padding + 15);
+    });
+  }
+
+  // --- VISION BOARD CONTROLLERS ---
+  function renderVision() {
+    const container = document.getElementById('vision-container');
+    container.innerHTML = '';
+    visionGoals.forEach((goal, idx) => {
+      const item = document.createElement('div');
+      item.className = 'vision-item';
+      item.innerHTML = `
+        ${goal}
+        <button class="del-vision" onclick="deleteVision(${idx})">✕</button>
+      `;
+      container.appendChild(item);
+    });
+    localStorage.setItem('visionGoals', JSON.stringify(visionGoals));
+  }
+
+  // --- IMPORTANT LINKS CONTROLLERS ---
+  function renderLinks() {
+    const container = document.getElementById('links-container');
+    container.innerHTML = '';
+    savedLinks.forEach((link, idx) => {
+      const li = document.createElement('li');
+      li.className = 'link-item';
+      li.innerHTML = `
+        <a href="${link.url}" target="_blank">${link.title}</a>
+        <button class="del-link-btn" onclick="deleteLink(${idx})">✕</button>
+      `;
+      container.appendChild(li);
+    });
+    localStorage.setItem('savedLinks', JSON.stringify(savedLinks));
+  }
+
+  function addVision() {
+    const input = document.getElementById('vision-input');
+    const val = input.value.trim();
+    if (val !== '') {
+      visionGoals.push(val);
+      input.value = '';
+      renderVision();
+    }
+  }
+
+  function deleteVision(index) {
+    visionGoals.splice(index, 1);
+    renderVision();
+  }
+
+  function addLink() {
+    const titleInput = document.getElementById('link-title');
+    const urlInput = document.getElementById('link-url');
+    let url = urlInput.value.trim();
+    const title = titleInput.value.trim();
+
+    if (title !== '' && url !== '') {
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+      }
+      savedLinks.push({ title: title, url: url });
+      titleInput.value = '';
+      urlInput.value = '';
+      renderLinks();
+    }
+  }
+
+  function deleteLink(index) {
+    savedLinks.splice(index, 1);
+    renderLinks();
+  }
+
+  // --- GOOGLE CALENDAR ACTIONS (Sync single event instance) ---
+  function parseToISO(timeStr) {
+    let timeParts = timeStr.split(/[–-]/);
+    if (timeParts.length < 2) return null;
+
+    let startStr = timeParts[0].trim();
+    let endStr = timeParts[1].trim();
+
+    function convertTo24h(str) {
+      let isPM = str.toLowerCase().includes('pm');
+      let isAM = str.toLowerCase().includes('am');
+      let clean = str.replace(/(am|pm)/gi, '').trim();
+      let parts = clean.split(':');
+      let h = parseInt(parts[0]);
+      let m = parts[1] || '00';
+      if (isPM && h < 12) h += 12;
+      if (isAM && h === 12) h = 0;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':00';
+    }
+
+    return {
+      start: convertTo24h(startStr),
+      end: convertTo24h(endStr)
+    };
+  }
+
+  async function syncSingleTask(taskIndex) {
+    if (!gapiLoadedFlag || !access_token) {
+      alert("Please authenticate using the Google Calendar Panel above first!");
+      return;
+    }
+
+    const task = routineList[taskIndex];
+    document.getElementById('gcal-status').innerHTML = `⚙️ <i>Syncing "${task.name}"...</i>`;
+
+    const parsedTimes = parseToISO(task.time);
+    if (!parsedTimes) {
+      alert("Could not automatically parse the time slot. Please use format: 'HH:MM - HH:MM'");
+      return;
+    }
+
+    const eventDate = task.date || currentDate.toISOString().split('T')[0];
+
+    const resource = {
+      'summary': task.name + ' (Raksha)',
+      'description': task.desc || 'Scheduled Study Block',
+      'start': {
+        'dateTime': `${eventDate}T${parsedTimes.start}`,
+        'timeZone': 'Asia/Kolkata'
+      },
+      'end': {
+        'dateTime': `${eventDate}T${parsedTimes.end}`,
+        'timeZone': 'Asia/Kolkata'
+      }
+    };
+
+    try {
+      await gapi.client.calendar.events.insert({
+        'calendarId': 'primary',
+        'resource': resource
+      });
+      document.getElementById('gcal-status').innerHTML = `✅ Successfully synchronized event <b>"${task.name}"</b> to GCal!`;
+      fetchUpcomingEvents(); 
+    } catch (err) {
+      document.getElementById('gcal-status').innerHTML = "❌ Sync Failed: " + (err.result?.error?.message || err.message);
+    }
+  }
+
+  async function deleteGCalEvent(eventId) {
+    if (!confirm("Are you sure you want to delete this event from your Google Calendar?")) return;
+
+    try {
+      await gapi.client.calendar.events.delete({
+        'calendarId': 'primary',
+        'eventId': eventId
+      });
+      document.getElementById('gcal-status').innerHTML = `🗑️ Event deleted from Google Calendar!`;
+      fetchUpcomingEvents(); 
+    } catch (err) {
+      alert("Failed to delete event: " + (err.result?.error?.message || err.message));
+    }
+  }
+
+  // Edit Calendar Event Modals
+  function openEditModal(id, summary, start, end) {
+    document.getElementById('edit-event-id').value = id;
+    document.getElementById('edit-event-title').value = summary;
+    document.getElementById('edit-event-start').value = start.substring(0,19);
+    document.getElementById('edit-event-end').value = end.substring(0,19);
+    document.getElementById('edit-modal').style.display = 'flex';
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').style.display = 'none';
+  }
+
+  async function saveEventChanges() {
+    const id = document.getElementById('edit-event-id').value;
+    const summary = document.getElementById('edit-event-title').value.trim();
+    const startStr = document.getElementById('edit-event-start').value.trim();
+    const endStr = document.getElementById('edit-event-end').value.trim();
+
+    if (!summary || !startStr || !endStr) {
+      alert("Please fill in all fields!");
+      return;
+    }
+
+    document.getElementById('gcal-status').innerHTML = `⚙️ <i>Saving changes to "${summary}"...</i>`;
+    closeEditModal();
+
+    try {
+      const getEvent = await gapi.client.calendar.events.get({
+        'calendarId': 'primary',
+        'eventId': id
+      });
+
+      const updatedEvent = getEvent.result;
+      updatedEvent.summary = summary;
+      updatedEvent.start.dateTime = startStr;
+      updatedEvent.end.dateTime = endStr;
+
+      await gapi.client.calendar.events.update({
+        'calendarId': 'primary',
+        'eventId': id,
+        'resource': updatedEvent
+      });
+
+      document.getElementById('gcal-status').innerHTML = `✅ Successfully modified <b>"${summary}"</b> in Google Calendar!`;
+      fetchUpcomingEvents(); 
+    } catch (err) {
+      alert("Failed to modify event: " + (err.result?.error?.message || err.message));
+      document.getElementById('gcal-status').innerHTML = "❌ Modification Failed.";
+    }
+  }
+
+  // --- CORE UI CONTROLLERS ---
+  var studyMins = 0;
+
+  function save() {
+    localStorage.setItem('logState', JSON.stringify(logState));
+    localStorage.setItem('notes', JSON.stringify(notes));
+    localStorage.setItem('streakData', JSON.stringify(streakData));
+  }
+
+  function showTab(id, btn) {
+    document.querySelectorAll('.sec').forEach(function(s) { s.classList.remove('active'); });
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+
+    // Handle canvas dimensions on resize / swap
+    if (id === 'job-tracker-tab') {
+      setTimeout(drawProgressGraph, 50);
+    }
+  }
+
+  function blockDone(id, mins) {
+    var cb = document.getElementById(id);
+    if (cb.checked) studyMins += mins; else studyMins = Math.max(0, studyMins - mins);
+    var h = Math.floor(studyMins / 60), m = studyMins % 60;
+    document.getElementById('today-hrs').textContent = h + 'h' + (m ? m + 'm' : '');
+  }
+
+  function toggleLog(day, type) {
+    var key = day + '-' + type;
+    var el = document.getElementById('log-' + key);
+    var s = logState[key] || 'nd';
+    if (s === 'nd') { logState[key] = 'done'; el.className = 'lpill done'; }
+    else if (s === 'done') { logState[key] = 'skip'; el.className = 'lpill skip'; }
+    else { logState[key] = 'nd'; el.className = 'lpill'; }
+    save();
+    updateMetrics();
+  }
+
+  function updateMetrics() {
+    var lc = 0, done = 0, total = 21;
+    for (var d = 0; d < 7; d++) if (logState[d + '-lc'] === 'done') lc++;
+    for (var k in logState) if (logState[k] === 'done') done++;
+    var streak = 0;
+    for (var d = 6; d >= 0; d--) {
+      if (logState[d + '-sc'] === 'done' || logState[d + '-lc'] === 'done') streak++;
+      else if (logState[d + '-sc'] === 'skip' && logState[d + '-lc'] === 'skip') break;
+    }
+    var pct = Math.round(done / total * 100);
+    document.getElementById('lc-count').textContent = lc;
+    document.getElementById('week-pct').textContent = pct + '%';
+    document.getElementById('week-bar').style.width = pct + '%';
+  }
+
+  function restoreLog() {
+    for (var key in logState) {
+      var el = document.getElementById('log-' + key);
+      if (!el) continue;
+      var s = logState[key];
+      el.className = 'lpill' + (s === 'done' ? ' done' : s === 'skip' ? ' skip' : '');
+    }
+    updateMetrics();
+  }
+
+  function resetWeek() {
+    if (!confirm("Reset this week's log?")) return;
+    logState = {};
+    save();
+    document.querySelectorAll('.lpill').forEach(function(el) { el.className = 'lpill'; });
+    updateMetrics();
+  }
+
+  function renderStreak() {
+    var row = document.getElementById('streak-row');
+    row.innerHTML = '';
+    streakData.forEach(function(s, i) {
+      var d = document.createElement('div');
+      d.className = 's-dot' + (s === 'done' ? ' done' : s === 'skip' ? ' skip' : '') + (i === 29 ? ' today' : '');
+      d.title = 'Day ' + (i + 1);
+      d.onclick = (function(idx) {
+        return function() {
+          var cur = streakData[idx];
+          streakData[idx] = cur === 'nd' ? 'done' : cur === 'done' ? 'skip' : 'nd';
+          save();
+          renderStreak();
+        };
+      })(i);
+      row.appendChild(d);
+    });
+  }
+
+  // --- SCRATCHPAD CONTROLLERS ---
+  function addNote() {
+    var inp = document.getElementById('note-input'), val = inp.value.trim();
+    if (!val) return;
+    var now = new Date();
+    notes.unshift({ text: val, date: now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) });
+    inp.value = '';
+    save();
+    renderNotes();
+  }
+
+  function deleteNote(idx) {
+    notes.splice(idx, 1);
+    save();
+    renderNotes();
+  }
+
+  function renderNotes() {
+    var list = document.getElementById('notes-list');
+    if (!notes.length) {
+      list.innerHTML = '<div style="font-size:13px;color:#aaa;padding:8px 0">No notes yet. Add something you learned today.</div>';
+      return;
+    }
+    list.innerHTML = notes.map(function(n, i) {
+      return '<div class="note-item"><span class="note-date">' + n.date + '</span><span>' + n.text + '</span><span class="note-del" onclick="deleteNote(' + i + ')">&times;</span></div>';
+    }).join('');
+  }
+</script>
+</body>
+</html>
